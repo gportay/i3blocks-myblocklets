@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# Copyright (C) 2017  Savoir-faire Linux Inc.
+#               2018  Gaël Portay <gael.portay@savoirfairelinux.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+
+add() {
+	local c iface proto hostname type domain fqdn ip port
+	c="$1"; shift
+	iface="$1"; shift
+	proto="$1"; shift
+	hostname="$1"; shift
+	type="$1"; shift
+	domain="$1"; shift
+	fqdn="$1"; shift
+	ip="$1"; shift
+	port="$1"; shift
+
+	if false
+	then
+		echo "iface=$iface" >&2
+		echo "proto=$proto" >&2
+		echo "hostname=$hostname" >&2
+		echo "type=$type" >&2
+		echo "domain=$domain" >&2
+		echo "fqdn=$fqdn" >&2
+		echo "ip=$ip" >&2
+		echo "port=$port" >&2
+		echo "txt_data=$*" >&2
+	fi
+
+	case "$hostname" in
+	$BLOCK_INSTANCE)
+		echo "$hostname"
+		;;
+	*)
+		echo "Ignoring: $c;$iface;$proto;$hostname;$type;$domain;$fqdn;$ip;$port;$*" >&2
+		;;
+	esac
+}
+
+avahi-browse -pr "${@:--a}" | \
+while read -ra line
+do
+	IFS=';' service=( "${line[@]}" )
+	if [ "${service[0]}" = "-" ]
+	then
+		continue
+	fi
+
+	add "${service[@]}"
+done
