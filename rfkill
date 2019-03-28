@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# Copyright 2019 Gaël PORTAY
+#
+# SPDX-License-Identifier: GPL-3-or-later
+#
+
+set -e
+set -o pipefail
+
+if [[ $# -eq 0 ]]
+then
+	cat <<EOF >&2
+Usage: ${0##*/} phy
+EOF
+	exit 1
+fi
+
+eval "$(rfkill list wlan | sed -n "/^[0-9]\+: $1: /,+2{//d;p}" | sed -e "s, block,_block," -e "s,[[:space:]],,g" -e "s,:,=," -e "s,\\(.*\\),\\L\\1,")"
+
+case "${3:-$button}" in
+1|unblock)
+	if ! sudo rfkill unblock wlan 2>&1
+	then
+		exit 33
+	fi
+	echo unblock
+	exit
+	;;
+2|address)
+	echo "${address:-device}"
+	exit
+	;;
+3|block)
+	if ! sudo rfkill block wlan 2>&1
+	then
+		exit 33
+	fi
+	echo block
+	exit
+	;;
+esac
+
+if [[ ! $hard_blocked ]]
+then
+	echo "wlan/$1 is not connected!"
+	echo "No $1!"
+	echo "#ffffff"
+	echo "#ff0000"
+	exit 33
+elif [[ $hard_blocked == yes ]]
+then
+	echo "wlan/$1 is harware blocked!"
+	echo "$1 HW!"
+	echo "#ffffff"
+	echo "#ff0000"
+	exit
+fi
+
+if [[ $soft_blocked == no ]]
+then
+	echo "wlan/$1"
+	echo
+	echo "#00ff00"
+else
+	echo "wlan/$1"
+	echo
+	echo "#ff0000"
+fi
