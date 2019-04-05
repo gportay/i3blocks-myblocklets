@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# Copyright 2019 Gaël PORTAY
+#
+# SPDX-License-Identifier: GPL-3-or-later
+#
+
+set -e
+
+is_connected() {
+	bluetoothctl info "$1" | grep -q 'Connected: yes'
+}
+
+if ! [[ $instance ]]
+then
+	echo "$name: instance: no such property!"
+	echo "instance?"
+	echo "#FF0000"
+	exit 33
+fi
+
+case "${2:-$button}" in
+1|connect)
+	bluetoothctl connect "$instance" >&2
+	echo "connecting to $instance..."
+	echo "connecting"
+	exit
+	;;
+2|instance)
+	echo "$instance"
+	echo "$instance"
+	exit
+	;;
+3|disconnect)
+	bluetoothctl disconnect "$instance" >&2
+	echo "$instance disconnected!"
+	echo "disconnected"
+	exit
+	;;
+esac
+
+if is_connected "$instance"
+then
+	color="#00FF00"
+fi
+
+echo "${device:-$instance}"
+echo "$instance"
+echo "$color"
