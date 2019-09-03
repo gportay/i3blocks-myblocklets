@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# Copyright 2019 Gaël PORTAY
+#
+# SPDX-License-Identifier: GPL-3-or-later
+#
+# Inspired from https://wiki.archlinux.org/index.php/acpid
+#
+# bl_dev=/sys/class/backlight/acpi_video0
+# step=1
+#
+# case $1 in
+#   -) echo $(($(< $bl_dev/brightness) - $step)) >$bl_dev/brightness;;
+#   +) echo $(($(< $bl_dev/brightness) + $step)) >$bl_dev/brightness;;
+# esac
+
+set -e
+
+if [[ $# -lt 1 ]]
+then
+	cat <<EOF >&2
+Usage: ${0##*/} BACKLIGHT [STEP] [ACTION]
+EOF
+	exit 1
+elif [ $# -lt 2 ]
+then
+	step="$(($(<"$1/max_brightness") / 20))"
+else
+	step="$2"
+fi
+
+case "${3:-$button}" in
+4|up|+)
+	value="$(echo "$(($(<"$1/brightness") + "$step"))")"
+	if [ "$value" -gt "$(<"$1/max_brightness")" ]
+	then
+		value="$(<"$1/max_brightness")"
+	fi
+	if ! echo "$value" >"$1/brightness" 2>&1
+	then
+		exit 33
+	fi
+	;;
+5|down|-)
+	value="$(echo "$(($(<"$1/brightness") - "$step"))")"
+	if [ "$value" -lt 0 ]
+	then
+		value=0
+	fi
+	if ! echo "$value" >"$1/brightness" 2>&1
+	then
+		exit 33
+	fi
+	;;
+esac
+
+if ! echo "BL$((100 - 100 * ($(<"$1/max_brightness") - $(<"$1/brightness")) / $(<"$1/max_brightness")))%" 2>&1
+then
+	exit 33
+fi
