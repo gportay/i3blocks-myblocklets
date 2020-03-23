@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# Copyright 2019 Gaël PORTAY
+#
+# SPDX-License-Identifier: GPL-3-or-later
+#
+
+set -e
+
+if [[ $# -lt 1 ]]
+then
+	cat <<EOF >&2
+Usage: ${0##*/} INSTANCE [start|stop]
+EOF
+	exit 1
+fi
+
+case "${2:-$button}" in
+1|start)
+	sudo systemctl start openvpn-client@$1.service
+	echo "VPN@$1: connecting..."
+	echo "connecting..."
+	exit
+	;;
+3|stop)
+	sudo systemctl stop openvpn-client@$1.service
+	echo "VPN@$1: disconnecting..."
+	echo "disconnecting..."
+	exit
+	;;
+esac
+
+if systemctl --quiet is-active openvpn-client@$1.service
+then
+	echo "VPN@$1: up"
+	echo "VPN@$1"
+	echo "#00ff00"
+else
+	echo "VPN@$1: down"
+	echo "VPN@$1"
+fi
