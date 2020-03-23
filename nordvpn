@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# Copyright 2020 Gaël PORTAY
+#
+# SPDX-License-Identifier: GPL-3-or-later
+#
+
+set -e
+
+status() {
+	while IFS="=" read -r var val
+	do
+		var="${var// /_}"
+		echo "${var,,}=\"${val}\""
+	done < <(nordvpn status | sed -n '/^[[:alnum:] ]\+:/s,: ,=,p')
+}
+
+case "${1:-$button}" in
+1|connect)
+	nordvpn connect >/dev/null
+	echo "NordVPN: connecting..."
+	echo "connecting..."
+	exit
+	;;
+2|status)
+	eval "$(status)"
+	echo "NordVPN: ${transfer:-$status}${country:+, $country${city:+/$city}}"
+	echo "${transfer:-$status}"
+	;;
+3|disconnect)
+	nordvpn disconnect >/dev/null
+	echo "NordVPN: disconnecting..."
+	echo "disconnecting..."
+	exit
+	;;
+esac
+
+eval "$(status)"
+if [[ $status == "Connected" ]] 
+then
+	echo "NordVPN: ${your_new_ip:-connected}"
+	echo "connected"
+	echo "#00ff00"
+else
+	echo "NordVPN: disconnected"
+	echo "disconnected"
+fi
